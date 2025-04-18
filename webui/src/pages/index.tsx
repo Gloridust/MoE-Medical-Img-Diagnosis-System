@@ -63,7 +63,6 @@ export default function Home() {
   const [fileName, setFileName] = useState<string>('');
   const [useYolo, setUseYolo] = useState<boolean>(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [rawContent, setRawContent] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [currentTab, setCurrentTab] = useState<number>(0);
@@ -85,7 +84,6 @@ export default function Home() {
       setImage(base64String);
       setFileName(file.name);
       setAnalysis(null);
-      setRawContent('');
     };
     reader.readAsDataURL(file);
   }, []);
@@ -109,7 +107,6 @@ export default function Home() {
       });
       
       setAnalysis(response.data.result);
-      setRawContent(response.data.rawContent || '');
     } catch (err) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.error || '分析失败，请重试');
@@ -126,7 +123,6 @@ export default function Home() {
     setImage(null);
     setFileName('');
     setAnalysis(null);
-    setRawContent('');
     setError('');
   };
 
@@ -426,7 +422,6 @@ export default function Home() {
                       >
                         <Tab label="概述" />
                         <Tab label="详细分析" />
-                        {/* {rawContent && <Tab label="原始数据" />} */}
                       </Tabs>
                     </Box>
                     
@@ -703,28 +698,6 @@ export default function Home() {
                         )}
                       </Box>
                     )}
-                    
-                    {/* 原始数据标签页 */}
-                    {/* {currentTab === 2 && rawContent && (
-                      <Box sx={{ 
-                        mt: 1, 
-                        overflow: 'auto', 
-                        maxHeight: '400px',
-                        bgcolor: alpha(theme.palette.background.default, 0.5),
-                        borderRadius: 2,
-                        p: 2
-                      }}>
-                        <pre style={{ 
-                          whiteSpace: 'pre-wrap', 
-                          wordBreak: 'break-word',
-                          fontFamily: 'inherit',
-                          fontSize: '0.875rem',
-                          margin: 0
-                        }}>
-                          {rawContent}
-                        </pre>
-                      </Box>
-                    )} */}
                   </>
                 ) : (
                   <Box
