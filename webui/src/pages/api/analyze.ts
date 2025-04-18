@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 
 // 初始化OpenAI客户端
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'xxx',
+  apiKey: process.env.OPENAI_API_KEY,
   baseURL: process.env.OPENAI_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1'
 });
 
