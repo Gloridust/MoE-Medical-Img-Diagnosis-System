@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const imageUrl = `data:image/jpeg;base64,${imageBase64}`;
 
     // 构建提示词 - 要求输出结构化JSON
-    const prompt = `请详细分析这张医学影像，并以JSON格式返回结果，格式如下：
+    const prompt = `请详细分析这张医学影像，并以JSON格式返回中文结果，格式如下：
 {
   "imageType": "影像类型，如CT、MRI、X光等",
   "bodyPart": "检查的身体部位",

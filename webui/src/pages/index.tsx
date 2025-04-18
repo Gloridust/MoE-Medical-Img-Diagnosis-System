@@ -25,6 +25,7 @@ import {
   Avatar,
   Tooltip
 } from '@mui/material';
+import Image from 'next/image';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
@@ -347,18 +348,22 @@ export default function Home() {
                   borderRadius: 2, 
                   overflow: 'hidden',
                   bgcolor: 'background.default',
-                  p: 1
+                  p: 1,
+                  position: 'relative',
+                  height: '400px'
                 }}>
-                  <img 
-                    src={`data:image/jpeg;base64,${image}`} 
-                    alt="医学影像" 
-                    style={{ 
-                      maxWidth: '100%', 
-                      maxHeight: '400px', 
-                      objectFit: 'contain',
-                      borderRadius: 8 
-                    }} 
-                  />
+                  {image && (
+                    <Image 
+                      src={`data:image/jpeg;base64,${image}`}
+                      alt="医学影像" 
+                      fill
+                      style={{ 
+                        objectFit: 'contain',
+                        borderRadius: 8 
+                      }}
+                      unoptimized // 防止Next.js尝试优化数据URL
+                    />
+                  )}
                 </Box>
               </Paper>
               
@@ -421,7 +426,7 @@ export default function Home() {
                       >
                         <Tab label="概述" />
                         <Tab label="详细分析" />
-                        {rawContent && <Tab label="原始数据" />}
+                        {/* {rawContent && <Tab label="原始数据" />} */}
                       </Tabs>
                     </Box>
                     
@@ -700,7 +705,7 @@ export default function Home() {
                     )}
                     
                     {/* 原始数据标签页 */}
-                    {currentTab === 2 && rawContent && (
+                    {/* {currentTab === 2 && rawContent && (
                       <Box sx={{ 
                         mt: 1, 
                         overflow: 'auto', 
@@ -719,7 +724,7 @@ export default function Home() {
                           {rawContent}
                         </pre>
                       </Box>
-                    )}
+                    )} */}
                   </>
                 ) : (
                   <Box
