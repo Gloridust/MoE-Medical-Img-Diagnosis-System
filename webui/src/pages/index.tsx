@@ -23,7 +23,8 @@ import {
   useTheme,
   alpha,
   Avatar,
-  Tooltip
+  Tooltip,
+  LinearProgress
 } from '@mui/material';
 import Image from 'next/image';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -46,16 +47,75 @@ interface AnalysisResult {
     normalStructures?: string[];
     abnormalFindings?: string[];
   };
-  possibleDiagnosis?: string[];
+  possibleDiagnosis?: Array<{
+    diagnosis: string;
+    confidence: string;
+  }>;
   recommendedActions?: string[];
   severity?: string;
-  confidence?: string;
+  confidence?: {
+    overall: string;
+    percentage: string;
+    factors: string[];
+  };
   summary?: string;
   rawText?: string;
 }
 
 // 定义严重程度类型
 type SeverityColor = 'error' | 'warning' | 'success' | 'default';
+
+// 置信度进度条组件
+interface ConfidenceProgressProps {
+  percentage: string;
+  label?: string;
+  showLabel?: boolean;
+}
+
+const ConfidenceProgress = ({ percentage, label, showLabel = true }: ConfidenceProgressProps) => {
+  const theme = useTheme();
+  // 从百分比字符串中提取数字
+  const numericValue = parseInt(percentage.replace(/\D/g, ''), 10);
+  const isValidNumber = !isNaN(numericValue) && numericValue >= 0 && numericValue <= 100;
+  
+  // 根据值选择颜色
+  const getColor = (value: number) => {
+    if (value >= 80) return theme.palette.success.main;
+    if (value >= 60) return theme.palette.info.main;
+    if (value >= 40) return theme.palette.warning.main;
+    return theme.palette.error.main;
+  };
+  
+  const color = isValidNumber ? getColor(numericValue) : theme.palette.grey[500];
+  
+  return (
+    <Box sx={{ width: '100%', mb: showLabel ? 0 : 1 }}>
+      {showLabel && label && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            {label}
+          </Typography>
+          <Typography variant="caption" sx={{ fontWeight: 500, color }}>
+            {percentage}
+          </Typography>
+        </Box>
+      )}
+      <LinearProgress
+        variant="determinate"
+        value={isValidNumber ? numericValue : 0}
+        sx={{
+          height: 6,
+          borderRadius: 3,
+          bgcolor: alpha(color, 0.15),
+          '& .MuiLinearProgress-bar': {
+            bgcolor: color,
+            borderRadius: 3
+          }
+        }}
+      />
+    </Box>
+  );
+};
 
 export default function Home() {
   const theme = useTheme();
@@ -461,15 +521,50 @@ export default function Home() {
                                   sx={{ borderRadius: 10 }}
                                 />
                               )}
-                              {analysis.confidence && (
+                              {analysis.confidence?.overall && (
                                 <Chip 
-                                  label={`可信度: ${analysis.confidence}`} 
+                                  label={`可信度: ${analysis.confidence.overall}`} 
+                                  size="small" 
+                                  variant="outlined"
+                                  sx={{ borderRadius: 10 }}
+                                />
+                              )}
+                              {analysis.confidence?.percentage && (
+                                <Chip 
+                                  label={`置信度: ${analysis.confidence.percentage}`} 
+                                  color="info"
                                   size="small" 
                                   variant="outlined"
                                   sx={{ borderRadius: 10 }}
                                 />
                               )}
                             </Box>
+                            
+                            {/* 置信度进度条 */}
+                            {analysis.confidence?.percentage && (
+                              <Box sx={{ mt: 2.5, mb: 1 }}>
+                                <ConfidenceProgress
+                                  percentage={analysis.confidence.percentage}
+                                  label="总体诊断置信度"
+                                />
+                              </Box>
+                            )}
+                            
+                            {/* 置信度因素 */}
+                            {analysis.confidence?.factors && analysis.confidence.factors.length > 0 && (
+                              <Box sx={{ mt: 2, p: 1.5, bgcolor: alpha(theme.palette.info.light, 0.1), borderRadius: 2 }}>
+                                <Typography variant="caption" sx={{ display: 'block', color: 'info.main', fontWeight: 500, mb: 0.5 }}>
+                                  影响诊断可信度的因素:
+                                </Typography>
+                                <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                                  {analysis.confidence.factors.map((factor, idx) => (
+                                    <Typography key={idx} component="li" variant="caption" sx={{ color: 'text.secondary' }}>
+                                      {factor}
+                                    </Typography>
+                                  ))}
+                                </Box>
+                              </Box>
+                            )}
                           </CardContent>
                         </Card>
                         
@@ -498,7 +593,7 @@ export default function Home() {
                                 p: 1
                               }}
                             >
-                              {analysis.possibleDiagnosis.map((diagnosis, index) => (
+                              {analysis.possibleDiagnosis.map((diagnosisItem, index) => (
                                 <ListItem key={index} disablePadding sx={{ py: 0.75 }}>
                                   <ListItemText 
                                     primary={
@@ -520,7 +615,35 @@ export default function Home() {
                                         >
                                           {index + 1}
                                         </Box>
-                                        <span>{diagnosis}</span>
+                                        <Box sx={{ flex: 1 }}>
+                                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Typography variant="body2">{diagnosisItem.diagnosis}</Typography>
+                                            {diagnosisItem.confidence && (
+                                              <Chip 
+                                                label={diagnosisItem.confidence} 
+                                                size="small"
+                                                variant="outlined"
+                                                color="info"
+                                                sx={{ 
+                                                  height: 20, 
+                                                  '& .MuiChip-label': { 
+                                                    px: 1,
+                                                    fontSize: '0.7rem' 
+                                                  },
+                                                  borderRadius: 5
+                                                }}
+                                              />
+                                            )}
+                                          </Box>
+                                          {diagnosisItem.confidence && (
+                                            <Box sx={{ mt: 0.5, width: '100%' }}>
+                                              <ConfidenceProgress
+                                                percentage={diagnosisItem.confidence}
+                                                showLabel={false}
+                                              />
+                                            </Box>
+                                          )}
+                                        </Box>
                                       </Box>
                                     }
                                   />
