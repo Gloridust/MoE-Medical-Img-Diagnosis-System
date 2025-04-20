@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -24,7 +24,10 @@ import {
   alpha,
   Avatar,
   Tooltip,
-  LinearProgress
+  LinearProgress,
+  useMediaQuery,
+  IconButton,
+  Fade
 } from '@mui/material';
 import Image from 'next/image';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -38,6 +41,8 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import TouchAppIcon from '@mui/icons-material/TouchApp';
 
 // 定义分析结果的接口
 interface AnalysisResult {
@@ -119,6 +124,7 @@ const ConfidenceProgress = ({ percentage, label, showLabel = true }: ConfidenceP
 
 export default function Home() {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [image, setImage] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [useYolo, setUseYolo] = useState<boolean>(false);
@@ -126,6 +132,39 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [currentTab, setCurrentTab] = useState<number>(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showTouchHint, setShowTouchHint] = useState(false);
+
+  // 监听滚动位置以显示/隐藏回到顶部按钮
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // 显示触摸提示（仅在移动设备上）
+  useEffect(() => {
+    if (isMobile && analysis) {
+      setShowTouchHint(true);
+      const timer = setTimeout(() => {
+        setShowTouchHint(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [analysis, isMobile]);
+
+  // 滚动到顶部
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
 
   // 处理文件拖拽上传
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -208,21 +247,21 @@ export default function Home() {
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <AppBar position="static" color="primary" elevation={0}>
-        <Toolbar>
+        <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
           <Avatar sx={{ mr: 2, bgcolor: alpha(theme.palette.common.white, 0.2) }}>
             <HealthAndSafetyIcon />
           </Avatar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 500 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 500, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             医学影像诊断平台
           </Typography>
         </Toolbar>
       </AppBar>
       
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flex: 1 }}>
+      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, flex: 1, px: { xs: 2, sm: 3 } }}>
         <Paper 
           elevation={0} 
           sx={{ 
-            p: 3, 
+            p: { xs: 2, sm: 3 }, 
             mb: 3, 
             borderRadius: 3,
             border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
@@ -230,8 +269,8 @@ export default function Home() {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <MedicalServicesIcon sx={{ color: 'primary.main', mr: 1 }} />
-            <Typography variant="h5" gutterBottom sx={{ mb: 0, fontWeight: 500 }}>
+            <MedicalServicesIcon sx={{ color: 'primary.main', mr: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+            <Typography variant="h5" gutterBottom sx={{ mb: 0, fontWeight: 500, fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
               上传医学影像
             </Typography>
           </Box>
@@ -243,7 +282,7 @@ export default function Home() {
             sx={{
               border: `2px dashed ${isDragActive ? theme.palette.primary.main : alpha(theme.palette.text.primary, 0.2)}`,
               borderRadius: 3,
-              p: 4,
+              p: { xs: 2, sm: 4 },
               mb: 3,
               textAlign: 'center',
               cursor: 'pointer',
@@ -266,14 +305,14 @@ export default function Home() {
             >
               <Avatar
                 sx={{
-                  width: 70,
-                  height: 70,
+                  width: { xs: 50, sm: 70 },
+                  height: { xs: 50, sm: 70 },
                   bgcolor: alpha(theme.palette.primary.main, 0.1),
                   color: theme.palette.primary.main,
                   mb: 2
                 }}
               >
-                <CloudUploadIcon sx={{ fontSize: 36 }} />
+                <CloudUploadIcon sx={{ fontSize: { xs: 28, sm: 36 } }} />
               </Avatar>
               {isDragActive ? (
                 <Typography variant="body1" sx={{ color: 'primary.main', fontWeight: 500 }}>
@@ -281,10 +320,10 @@ export default function Home() {
                 </Typography>
               ) : (
                 <>
-                  <Typography variant="body1" sx={{ fontWeight: 500, mb: 1 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 500, mb: 1, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                     点击或拖放医学影像图片到此处
                   </Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     支持 JPG、PNG、DICOM 等格式
                   </Typography>
                 </>
@@ -296,8 +335,10 @@ export default function Home() {
           <Box 
             sx={{ 
               display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
               justifyContent: 'space-between', 
-              alignItems: 'center', 
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              gap: { xs: 2, sm: 0 },
               mb: 3,
               p: 2,
               borderRadius: 2,
@@ -305,7 +346,7 @@ export default function Home() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <ScienceIcon sx={{ color: 'text.secondary', mr: 1 }} />
+              <ScienceIcon sx={{ color: 'text.secondary', mr: 1, fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />
               <FormControlLabel
                 control={
                   <Switch 
@@ -313,20 +354,21 @@ export default function Home() {
                     onChange={(e) => setUseYolo(e.target.checked)} 
                     disabled={true}
                     color="primary"
+                    size="small"
                   />
                 }
                 label={
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography>使用YOLO检测</Typography>
+                    <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>使用YOLO检测</Typography>
                     <Tooltip title="YOLO目标检测功能正在开发中，敬请期待">
-                      <InfoOutlinedIcon sx={{ ml: 0.5, fontSize: 16, color: 'text.secondary' }} />
+                      <InfoOutlinedIcon sx={{ ml: 0.5, fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
                     </Tooltip>
                   </Box>
                 }
               />
             </Box>
             
-            <Box>
+            <Box sx={{ display: 'flex', width: { xs: '100%', sm: 'auto' } }}>
               {image && (
                 <Button 
                   variant="outlined" 
@@ -335,7 +377,9 @@ export default function Home() {
                   sx={{ 
                     mr: 2,
                     borderRadius: 6,
-                    px: 3
+                    px: { xs: 2, sm: 3 },
+                    flex: { xs: 1, sm: 'none' },
+                    fontSize: { xs: '0.8rem', sm: '0.875rem' }
                   }}
                 >
                   清除
@@ -348,7 +392,9 @@ export default function Home() {
                 disabled={!image || loading}
                 sx={{ 
                   borderRadius: 6,
-                  px: 3
+                  px: { xs: 2, sm: 3 },
+                  flex: { xs: 1, sm: 'none' },
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' }
                 }}
               >
                 {loading ? <CircularProgress size={24} color="inherit" /> : '分析图像'}
@@ -362,7 +408,8 @@ export default function Home() {
               sx={{ 
                 mb: 3, 
                 borderRadius: 2,
-                '& .MuiAlert-icon': { alignItems: 'center' }
+                '& .MuiAlert-icon': { alignItems: 'center' },
+                fontSize: { xs: '0.8rem', sm: '0.875rem' }
               }}
             >
               {error}
@@ -376,15 +423,16 @@ export default function Home() {
               <Paper 
                 elevation={0} 
                 sx={{ 
-                  p: 2, 
+                  p: { xs: 1.5, sm: 2 },
                   flex: 1, 
                   maxWidth: { md: '40%' },
                   borderRadius: 3,
                   border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  order: { xs: 2, md: 1 } // 移动端时图片放在下面
                 }}
               >
-                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 500, display: 'flex', alignItems: 'center' }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 500, display: 'flex', alignItems: 'center', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                   <Box 
                     component="span" 
                     sx={{ 
@@ -406,7 +454,7 @@ export default function Home() {
                   bgcolor: 'background.default',
                   p: 1,
                   position: 'relative',
-                  height: '400px'
+                  height: { xs: '250px', md: '400px' }
                 }}>
                   {image && (
                     <Image 
@@ -427,15 +475,16 @@ export default function Home() {
               <Paper 
                 elevation={0} 
                 sx={{ 
-                  p: 2, 
+                  p: { xs: 1.5, sm: 2 },
                   flex: 1, 
                   display: 'flex', 
                   flexDirection: 'column',
                   borderRadius: 3,
-                  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                  order: { xs: 1, md: 2 } // 移动端时结果放在上面
                 }}
               >
-                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 500, display: 'flex', alignItems: 'center' }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 500, display: 'flex', alignItems: 'center', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                   <Box 
                     component="span" 
                     sx={{ 
@@ -456,13 +505,13 @@ export default function Home() {
                     flexDirection: 'column',
                     justifyContent: 'center', 
                     alignItems: 'center', 
-                    height: '250px',
+                    height: { xs: '200px', sm: '250px' },
                     bgcolor: alpha(theme.palette.background.default, 0.5),
                     borderRadius: 2,
                     mt: 2
                   }}>
-                    <CircularProgress size={50} thickness={4} />
-                    <Typography sx={{ mt: 2, color: 'text.secondary' }}>
+                    <CircularProgress size={40} thickness={4} />
+                    <Typography sx={{ mt: 2, color: 'text.secondary', fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                       正在分析医学影像...
                     </Typography>
                   </Box>
@@ -476,7 +525,9 @@ export default function Home() {
                         variant="fullWidth"
                         sx={{
                           '& .MuiTab-root': {
-                            py: 1.5
+                            py: { xs: 1, sm: 1.5 },
+                            minHeight: { xs: 40, sm: 48 },
+                            fontSize: { xs: '0.8rem', sm: '0.875rem' }
                           }
                         }}
                       >
@@ -487,7 +538,24 @@ export default function Home() {
                     
                     {/* 概述标签页 */}
                     {currentTab === 0 && (
-                      <Box sx={{ px: 1 }}>
+                      <Box 
+                        sx={{ 
+                          px: { xs: 0.5, sm: 1 }, 
+                          overflowY: 'auto', 
+                          maxHeight: { xs: '350px', sm: 'none' },
+                          scrollbarWidth: 'thin',
+                          '&::-webkit-scrollbar': {
+                            width: '4px',
+                          },
+                          '&::-webkit-scrollbar-track': {
+                            background: alpha(theme.palette.background.default, 0.5),
+                          },
+                          '&::-webkit-scrollbar-thumb': {
+                            background: alpha(theme.palette.primary.main, 0.3),
+                            borderRadius: 10,
+                          },
+                        }}
+                      >
                         <Card 
                           variant="outlined" 
                           sx={{ 
@@ -497,16 +565,16 @@ export default function Home() {
                             border: 'none'
                           }}
                         >
-                          <CardContent>
+                          <CardContent sx={{ px: { xs: 1.5, sm: 2 }, py: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
                             {analysis.imageType && (
-                              <Typography variant="body2" color="text.secondary" gutterBottom>
+                              <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                 <Box component="span" sx={{ color: 'primary.main', fontWeight: 500 }}>影像类型:</Box> {analysis.imageType} 
                                 {analysis.bodyPart && (
                                   <> | <Box component="span" sx={{ color: 'primary.main', fontWeight: 500 }}>检查部位:</Box> {analysis.bodyPart}</>
                                 )}
                               </Typography>
                             )}
-                            <Typography variant="body1" component="div" sx={{ mb: 1, lineHeight: 1.6 }}>
+                            <Typography variant="body1" component="div" sx={{ mb: 1, lineHeight: 1.6, fontSize: { xs: '0.85rem', sm: '1rem' } }}>
                               {analysis.summary || '无总结信息'}
                             </Typography>
                             
@@ -518,7 +586,7 @@ export default function Home() {
                                   color={getSeverityInfo(analysis.severity).color}
                                   size="small" 
                                   variant="outlined"
-                                  sx={{ borderRadius: 10 }}
+                                  sx={{ borderRadius: 10, height: { xs: 24, sm: 32 }, '& .MuiChip-label': { fontSize: { xs: '0.7rem', sm: '0.75rem' } } }}
                                 />
                               )}
                               {analysis.confidence?.overall && (
@@ -526,7 +594,7 @@ export default function Home() {
                                   label={`可信度: ${analysis.confidence.overall}`} 
                                   size="small" 
                                   variant="outlined"
-                                  sx={{ borderRadius: 10 }}
+                                  sx={{ borderRadius: 10, height: { xs: 24, sm: 32 }, '& .MuiChip-label': { fontSize: { xs: '0.7rem', sm: '0.75rem' } } }}
                                 />
                               )}
                               {analysis.confidence?.percentage && (
@@ -535,7 +603,7 @@ export default function Home() {
                                   color="info"
                                   size="small" 
                                   variant="outlined"
-                                  sx={{ borderRadius: 10 }}
+                                  sx={{ borderRadius: 10, height: { xs: 24, sm: 32 }, '& .MuiChip-label': { fontSize: { xs: '0.7rem', sm: '0.75rem' } } }}
                                 />
                               )}
                             </Box>
@@ -553,12 +621,12 @@ export default function Home() {
                             {/* 置信度因素 */}
                             {analysis.confidence?.factors && analysis.confidence.factors.length > 0 && (
                               <Box sx={{ mt: 2, p: 1.5, bgcolor: alpha(theme.palette.info.light, 0.1), borderRadius: 2 }}>
-                                <Typography variant="caption" sx={{ display: 'block', color: 'info.main', fontWeight: 500, mb: 0.5 }}>
+                                <Typography variant="caption" sx={{ display: 'block', color: 'info.main', fontWeight: 500, mb: 0.5, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                                   影响诊断可信度的因素:
                                 </Typography>
                                 <Box component="ul" sx={{ m: 0, pl: 2 }}>
                                   {analysis.confidence.factors.map((factor, idx) => (
-                                    <Typography key={idx} component="li" variant="caption" sx={{ color: 'text.secondary' }}>
+                                    <Typography key={idx} component="li" variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                                       {factor}
                                     </Typography>
                                   ))}
@@ -579,7 +647,8 @@ export default function Home() {
                                 alignItems: 'center',
                                 color: 'primary.main',
                                 fontWeight: 500,
-                                mb: 1
+                                mb: 1,
+                                fontSize: { xs: '0.8rem', sm: '0.875rem' }
                               }}
                             >
                               可能的诊断:
@@ -594,7 +663,7 @@ export default function Home() {
                               }}
                             >
                               {analysis.possibleDiagnosis.map((diagnosisItem, index) => (
-                                <ListItem key={index} disablePadding sx={{ py: 0.75 }}>
+                                <ListItem key={index} disablePadding sx={{ py: 0.75, flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'flex-start' }}>
                                   <ListItemText 
                                     primary={
                                       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
@@ -615,9 +684,15 @@ export default function Home() {
                                         >
                                           {index + 1}
                                         </Box>
-                                        <Box sx={{ flex: 1 }}>
-                                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <Typography variant="body2">{diagnosisItem.diagnosis}</Typography>
+                                        <Box sx={{ flex: 1, width: '100%' }}>
+                                          <Box sx={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: { xs: 'flex-start', sm: 'center' },
+                                            flexDirection: { xs: 'column', sm: 'row' },
+                                            gap: { xs: 0.5, sm: 0 }
+                                          }}>
+                                            <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>{diagnosisItem.diagnosis}</Typography>
                                             {diagnosisItem.confidence && (
                                               <Chip 
                                                 label={diagnosisItem.confidence} 
@@ -625,10 +700,10 @@ export default function Home() {
                                                 variant="outlined"
                                                 color="info"
                                                 sx={{ 
-                                                  height: 20, 
+                                                  height: { xs: 18, sm: 20 }, 
                                                   '& .MuiChip-label': { 
                                                     px: 1,
-                                                    fontSize: '0.7rem' 
+                                                    fontSize: { xs: '0.65rem', sm: '0.7rem' }
                                                   },
                                                   borderRadius: 5
                                                 }}
@@ -646,6 +721,7 @@ export default function Home() {
                                         </Box>
                                       </Box>
                                     }
+                                    sx={{ margin: 0 }}
                                   />
                                 </ListItem>
                               ))}
@@ -664,7 +740,8 @@ export default function Home() {
                                 alignItems: 'center',
                                 color: 'primary.main',
                                 fontWeight: 500,
-                                mb: 1
+                                mb: 1,
+                                fontSize: { xs: '0.8rem', sm: '0.875rem' }
                               }}
                             >
                               建议行动:
@@ -700,7 +777,12 @@ export default function Home() {
                                         >
                                           {index + 1}
                                         </Box>
-                                        <span>{action}</span>
+                                        <Typography 
+                                          variant="body2" 
+                                          sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                                        >
+                                          {action}
+                                        </Typography>
                                       </Box>
                                     }
                                   />
@@ -714,7 +796,24 @@ export default function Home() {
                     
                     {/* 详细分析标签页 */}
                     {currentTab === 1 && (
-                      <Box sx={{ px: 1 }}>
+                      <Box 
+                        sx={{ 
+                          px: { xs: 0.5, sm: 1 }, 
+                          overflowY: 'auto', 
+                          maxHeight: { xs: '350px', sm: 'none' },
+                          scrollbarWidth: 'thin',
+                          '&::-webkit-scrollbar': {
+                            width: '4px',
+                          },
+                          '&::-webkit-scrollbar-track': {
+                            background: alpha(theme.palette.background.default, 0.5),
+                          },
+                          '&::-webkit-scrollbar-thumb': {
+                            background: alpha(theme.palette.primary.main, 0.3),
+                            borderRadius: 10,
+                          },
+                        }}
+                      >
                         {/* 正常结构 */}
                         {analysis.findings?.normalStructures && analysis.findings.normalStructures.length > 0 && (
                           <Box sx={{ mb: 2 }}>
@@ -726,10 +825,11 @@ export default function Home() {
                                 alignItems: 'center',
                                 color: 'success.main',
                                 fontWeight: 500,
-                                mb: 1
+                                mb: 1,
+                                fontSize: { xs: '0.8rem', sm: '0.875rem' }
                               }}
                             >
-                              <CheckCircleIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                              <CheckCircleIcon sx={{ fontSize: { xs: 16, sm: 18 }, mr: 0.5 }} />
                               正常结构:
                             </Typography>
                             <List 
@@ -746,8 +846,13 @@ export default function Home() {
                                   <ListItemText 
                                     primary={
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main' }} />
-                                        <span>{item}</span>
+                                        <CheckCircleIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'success.main' }} />
+                                        <Typography 
+                                          variant="body2" 
+                                          sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                                        >
+                                          {item}
+                                        </Typography>
                                       </Box>
                                     }
                                   />
@@ -768,10 +873,11 @@ export default function Home() {
                                 alignItems: 'center',
                                 color: 'error.main',
                                 fontWeight: 500,
-                                mb: 1
+                                mb: 1,
+                                fontSize: { xs: '0.8rem', sm: '0.875rem' }
                               }}
                             >
-                              <ReportIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                              <ReportIcon sx={{ fontSize: { xs: 16, sm: 18 }, mr: 0.5 }} />
                               异常发现:
                             </Typography>
                             <List 
@@ -788,8 +894,13 @@ export default function Home() {
                                   <ListItemText 
                                     primary={
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <ReportIcon sx={{ fontSize: 16, color: 'error.main' }} />
-                                        <span>{item}</span>
+                                        <ReportIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'error.main' }} />
+                                        <Typography 
+                                          variant="body2" 
+                                          sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                                        >
+                                          {item}
+                                        </Typography>
                                       </Box>
                                     }
                                   />
@@ -808,13 +919,13 @@ export default function Home() {
                               flexDirection: 'column',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              py: 4,
+                              py: { xs: 3, sm: 4 },
                               bgcolor: alpha(theme.palette.background.default, 0.5),
                               borderRadius: 2,
                             }}
                           >
-                            <InfoOutlinedIcon sx={{ color: 'text.secondary', fontSize: 40, mb: 2 }} />
-                            <Typography variant="body2" color="text.secondary">
+                            <InfoOutlinedIcon sx={{ color: 'text.secondary', fontSize: { xs: 32, sm: 40 }, mb: 2 }} />
+                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                               没有详细的发现信息
                             </Typography>
                           </Box>
@@ -829,14 +940,14 @@ export default function Home() {
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      height: '250px',
+                      height: { xs: '200px', sm: '250px' },
                       bgcolor: alpha(theme.palette.background.default, 0.5),
                       borderRadius: 2,
                       mt: 2
                     }}
                   >
-                    <PsychologyIcon sx={{ color: 'text.secondary', fontSize: 50, mb: 2 }} />
-                    <Typography sx={{ color: 'text.secondary' }}>
+                    <PsychologyIcon sx={{ color: 'text.secondary', fontSize: { xs: 40, sm: 50 }, mb: 2 }} />
+                    <Typography sx={{ color: 'text.secondary', fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                       点击分析图像按钮开始分析
                     </Typography>
                   </Box>
@@ -846,10 +957,61 @@ export default function Home() {
           )}
         </Paper>
         
-        <Box sx={{ textAlign: 'center', mt: 4, color: 'text.secondary', fontSize: '0.875rem' }}>
-          医学影像诊断平台 &copy; {new Date().getFullYear()} | 结合多模态AI和YOLO技术
+        <Box sx={{ textAlign: 'center', mt: { xs: 2, sm: 4 }, color: 'text.secondary', fontSize: { xs: '0.75rem', sm: '0.875rem' }, pb: 2 }}>
+          <Box sx={{ maxWidth: '260px', mx: 'auto', px: 2 }}>
+            医学影像诊断平台 &copy; {new Date().getFullYear()} | 结合多模态AI和YOLO技术
+          </Box>
         </Box>
       </Container>
+
+      {/* 返回顶部按钮 */}
+      <Fade in={showScrollTop}>
+        <IconButton
+          color="primary"
+          aria-label="返回顶部"
+          onClick={scrollToTop}
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            bgcolor: alpha(theme.palette.primary.main, 0.9),
+            color: 'white',
+            '&:hover': {
+              bgcolor: theme.palette.primary.main,
+            },
+            zIndex: 10,
+            boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <ArrowUpwardIcon />
+        </IconButton>
+      </Fade>
+
+      {/* 移动端滑动提示 */}
+      <Fade in={showTouchHint}>
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: 70,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bgcolor: alpha(theme.palette.info.main, 0.9),
+            color: 'white',
+            py: 1,
+            px: 2,
+            borderRadius: 10,
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <TouchAppIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
+          <Typography variant="caption">
+            上下滑动查看更多内容
+          </Typography>
+        </Box>
+      </Fade>
     </Box>
   );
 }
