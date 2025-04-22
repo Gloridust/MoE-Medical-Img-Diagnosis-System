@@ -200,17 +200,59 @@ export default function Home() {
     setError('');
     
     try {
+      console.log('开始分析图片...');
       const response = await axios.post('/api/analyze', {
         imageBase64: image,
         useYolo
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 120000 // 延长超时时间至120秒
       });
       
+      console.log('分析完成，响应状态:', response.status);
       setAnalysis(response.data.result);
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || '分析失败，请重试');
+      
+      // 分析完成后滚动到结果区域
+      setTimeout(() => {
+        window.scrollTo({
+          top: document.getElementById('results-section')?.offsetTop || 0,
+          behavior: 'smooth'
+        });
+      }, 500);
+    } catch (error) {
+      console.error('分析错误:', error);
+      
+      // 记录详细错误信息到控制台，帮助调试
+      if (axios.isAxiosError(error)) {
+        console.error('请求详情:', {
+          config: error.config,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          headers: error.response?.headers,
+          data: error.response?.data
+        });
+      }
+      
+      // 提供更友好的错误信息
+      if (axios.isAxiosError(error)) {
+        const statusCode = error.response?.status;
+        const errorMessage = error.response?.data?.error || error.message;
+        
+        if (statusCode === 429) {
+          setError('请求频率过高，请稍后再试');
+        } else if (statusCode === 413) {
+          setError('图片太大，请上传小于4MB的图片');
+        } else if (statusCode === 504 || error.code === 'ECONNABORTED') {
+          setError('分析超时，请尝试上传质量更好的图片或稍后重试');
+        } else if (statusCode === 400) {
+          setError(`请求参数错误: ${errorMessage}`);
+        } else {
+          setError(`分析失败: ${errorMessage}`);
+        }
       } else {
-        setError('发生未知错误');
+        setError('分析过程中出现意外错误，请重试');
       }
     } finally {
       setLoading(false);
@@ -457,7 +499,7 @@ export default function Home() {
                   height: { xs: '250px', md: '400px' }
                 }}>
                   {image && (
-                    <Image 
+          <Image
                       src={`data:image/jpeg;base64,${image}`}
                       alt="医学影像" 
                       fill
@@ -473,7 +515,8 @@ export default function Home() {
               
               {/* 分析结果 */}
               <Paper 
-                elevation={0} 
+                elevation={0}
+                id="results-section" 
                 sx={{ 
                   p: { xs: 1.5, sm: 2 },
                   flex: 1, 

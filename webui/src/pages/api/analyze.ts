@@ -13,12 +13,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    console.log('收到分析请求');
     const { imageBase64, useYolo = false } = req.body;
 
     if (!imageBase64) {
-      return res.status(400).json({ error: '未提供图片' });
+      console.error('请求验证失败: 缺少imageBase64参数');
+      return res.status(400).json({ error: '未提供图片数据，请确保传递了imageBase64参数' });
     }
 
+    // 验证图片格式
+    if (typeof imageBase64 !== 'string') {
+      console.error('请求验证失败: imageBase64不是字符串类型');
+      return res.status(400).json({ error: 'imageBase64必须是字符串类型' });
+    }
+
+    console.log('准备图片数据，使用YOLO:', useYolo);
+    
     // 将base64转换为OpenAI可接受的格式
     const imageUrl = `data:image/jpeg;base64,${imageBase64}`;
 
@@ -50,9 +60,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   },
   "summary": "一段简明的总结"
 }
-请确保返回的是有效JSON格式，不要添加markdown标记、额外说明或其他非JSON内容。针对每个诊断给出可信度百分比，并在confidence字段中提供总体可信度评估。`;
+请确保返回的是有效JSON格式，不要添加markdown标记、额外说明或其他非JSON内容。针对每个诊断给出可信度百分比，并在confidence字段中提供总体可信度评估。无论如何都不要返回除了规定的 json 格式以外的内容。`;
 
     // 调用多模态模型
+    console.log('开始调用AI模型分析...');
     const response = await openai.chat.completions.create({
       model: process.env.QWEN_MODEL || "qwen-vl-max",
       messages: [
@@ -65,8 +76,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       ]
     });
+    console.log('AI模型分析完成，开始处理结果');
 
     const rawContent = response.choices[0]?.message?.content || "{}";
+    console.log('原始返回内容:', rawContent);
     
     // 尝试解析JSON响应
     let jsonResponse;
@@ -74,6 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // 提取原始响应中的JSON部分
       const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
       const jsonString = jsonMatch ? jsonMatch[0] : "{}";
+      console.log('提取的JSON字符串:', jsonString);
       jsonResponse = JSON.parse(jsonString);
     } catch (e) {
       console.error('解析JSON失败:', e);
@@ -81,6 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       jsonResponse = { rawText: rawContent };
     }
 
+    console.log('分析完成，返回结果');
     return res.status(200).json({
       result: jsonResponse,
       rawContent: rawContent,
@@ -88,6 +103,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error: unknown) {
     console.error('分析失败:', error);
+    
+    // 记录更多详细的错误信息用于调试
+    if (error instanceof Error) {
+      console.error('错误详情:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+    }
+    
+    // 尝试记录更多API相关信息（如果存在）
+    if (error instanceof OpenAI.APIError) {
+      console.error('OpenAI API错误详情:', {
+        status: error.status,
+        headers: error.headers,
+        type: error.type,
+        code: error.code,
+        param: error.param,
+        message: error.message
+      });
+    }
+    
     const errorMessage = error instanceof Error ? error.message : '未知错误';
     return res.status(500).json({ error: `分析失败: ${errorMessage}` });
   }
