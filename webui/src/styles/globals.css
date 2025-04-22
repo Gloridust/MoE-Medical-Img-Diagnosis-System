@@ -9,6 +9,40 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 防止橡皮筋效果 */
+  overscroll-behavior: none;
+}
+
+/* iOS WebApp特定样式 */
+.ios-device {
+  /* 避免iOS默认触摸高亮 */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-standalone {
+  /* 防止在全屏模式下的额外padding */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* 全屏模式下的固定高度 */
+  height: 100vh;
+  /* 防止内容滚动时的弹性效果 */
+  position: fixed;
+  width: 100%;
+  overflow: auto;
+}
+
+/* 防止iOS中长按文本选择 */
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 允许在输入框中选择文本 */
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* 滚动条样式优化 */
