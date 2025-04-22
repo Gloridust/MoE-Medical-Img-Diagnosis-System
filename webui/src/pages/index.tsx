@@ -287,7 +287,18 @@ export default function Home() {
   };
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box 
+      sx={{ 
+        bgcolor: 'background.default', 
+        minHeight: '100vh', 
+        display: 'flex', 
+        flexDirection: 'column',
+        WebkitOverflowScrolling: 'touch', // 提供iOS原生滚动体验
+        width: '100%',
+        position: 'relative', // 确保正确的定位上下文
+        overflowX: 'hidden', // 防止水平滚动
+      }}
+    >
       <AppBar position="static" color="primary" elevation={0} sx={{ borderRadius: 0 }}>
         <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
           <Avatar sx={{ mr: 2, bgcolor: alpha(theme.palette.common.white, 0.2) }}>
@@ -299,7 +310,16 @@ export default function Home() {
         </Toolbar>
       </AppBar>
       
-      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, flex: 1, px: { xs: 2, sm: 3 } }}>
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          mt: { xs: 2, sm: 4 }, 
+          mb: { xs: 2, sm: 4 }, 
+          flex: 1, 
+          px: { xs: 2, sm: 3 },
+          overflowY: 'visible', // 确保内容可以滚动
+        }}
+      >
         <Paper 
           elevation={0} 
           sx={{ 
@@ -1035,7 +1055,7 @@ export default function Home() {
         <Box
           sx={{
             position: 'fixed',
-            bottom: 70,
+            bottom: 'env(safe-area-inset-bottom, 70px)', // 使用iOS安全区域
             left: '50%',
             transform: 'translateX(-50%)',
             bgcolor: alpha(theme.palette.info.main, 0.9),

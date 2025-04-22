@@ -164,8 +164,20 @@ export default function App({ Component, pageProps }: AppProps) {
       if (isInStandaloneMode) {
         document.body.classList.add('ios-standalone');
         
-        // 防止默认的橡皮筋效果
-        document.body.style.overscrollBehavior = 'none';
+        // 修复iOS 15及以上版本中的滚动问题
+        document.documentElement.style.height = '100%';
+        document.body.style.height = '100%';
+        document.body.style.position = 'relative';
+        document.body.style.overflowY = 'auto';
+        
+        // 添加WebKit特定样式通过CSS类而不是直接操作style
+        const style = document.createElement('style');
+        style.innerHTML = `
+          body.ios-standalone {
+            -webkit-overflow-scrolling: touch;
+          }
+        `;
+        document.head.appendChild(style);
         
         // 阻止页面上的链接打开Safari
         document.addEventListener('click', (e) => {
@@ -187,12 +199,14 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <title>医学影像诊断平台</title>
       </Head>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Component {...pageProps} />
+        <div className="app-container">
+          <Component {...pageProps} />
+        </div>
       </ThemeProvider>
     </>
   );

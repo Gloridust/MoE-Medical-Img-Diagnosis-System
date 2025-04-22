@@ -11,7 +11,7 @@ body {
   font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* 防止橡皮筋效果 */
+  /* 允许滚动但防止橡皮筋效果 */
   overscroll-behavior: none;
 }
 
@@ -24,15 +24,24 @@ body {
 .ios-standalone {
   /* 防止在全屏模式下的额外padding */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  /* 全屏模式下的固定高度 */
-  height: 100vh;
-  /* 防止内容滚动时的弹性效果 */
-  position: fixed;
+  /* 允许内容滚动 */
+  position: relative;
   width: 100%;
-  overflow: auto;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* 提供iOS原生滚动体验 */
 }
 
-/* 防止iOS中长按文本选择 */
+/* iOS safe area 适配 */
+.app-container {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  min-height: 100vh;
+}
+
+/* 防止iOS中长按文本选择，但允许正常滚动 */
 * {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
