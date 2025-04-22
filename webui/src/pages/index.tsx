@@ -246,7 +246,7 @@ export default function Home() {
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <AppBar position="static" color="primary" elevation={0}>
+      <AppBar position="static" color="primary" elevation={0} sx={{ borderRadius: 0 }}>
         <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
           <Avatar sx={{ mr: 2, bgcolor: alpha(theme.palette.common.white, 0.2) }}>
             <HealthAndSafetyIcon />
